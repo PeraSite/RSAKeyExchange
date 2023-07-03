@@ -14,19 +14,23 @@ namespace Common {
 			if (iv is not {Length: > 0})
 				throw new ArgumentNullException(nameof(iv));
 
+			// AES 객체 생성
 			using Aes aes = Aes.Create();
 			aes.Key = key;
 			aes.IV = iv;
 
+			// Encryptor 생성 
 			ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
 
-			using MemoryStream msEncrypt = new MemoryStream();
-			using CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write);
-			using (StreamWriter swEncrypt = new StreamWriter(csEncrypt)) {
-				swEncrypt.Write(plainText);
+			// MemoryStream에 plain text 쓰기
+			using MemoryStream ms = new MemoryStream();
+			using CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
+			using (StreamWriter sw = new StreamWriter(cs)) {
+				sw.Write(plainText);
 			}
 
-			var encrypted = msEncrypt.ToArray();
+			// MemoryStream에 쓰인 바이트 배열로 변환해 반환
+			var encrypted = ms.ToArray();
 			return encrypted;
 		}
 
@@ -40,17 +44,21 @@ namespace Common {
 			if (iv is not {Length: > 0})
 				throw new ArgumentNullException(nameof(iv));
 
-			using Aes aesAlg = Aes.Create();
-			aesAlg.Key = key;
-			aesAlg.IV = iv;
+			// AES 객체 생성
+			using Aes aes = Aes.Create();
+			aes.Key = key;
+			aes.IV = iv;
 
-			ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+			// Decryptor 생성
+			ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
 
-			using MemoryStream msDecrypt = new MemoryStream(cipherText);
-			using CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read);
-			using StreamReader srDecrypt = new StreamReader(csDecrypt);
-			var plaintext = srDecrypt.ReadToEnd();
+			// cipher text를 담은 MemoryStream 만들기
+			using MemoryStream ms = new MemoryStream(cipherText);
+			using CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+			using StreamReader sr = new StreamReader(cs);
 
+			// MemoryStream을 래핑한 StreamReader로 복호화된 문자열 읽기
+			var plaintext = sr.ReadToEnd();
 			return plaintext;
 		}
 	}
